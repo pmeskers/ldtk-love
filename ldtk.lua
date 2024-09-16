@@ -61,13 +61,13 @@ local cache = {
 }
 
 local ldtk = {
-    levels = {},
-    levelsNames = {},
-    tilesets = {},
+    levels            = {},
+    levelsNames       = {},
+    tilesets          = {},
     currentLevelIndex = nil,
     currentLevelName  = '',
-    flipped = false,
-    cache = cache
+    flipped           = false,
+    cache             = cache
 }
 
 local _path
@@ -92,7 +92,6 @@ local oldColor = {}
 
 --creates the layer object from data. only used here. ignore it
 local function create_layer_object(self, data, auto)
-    
     self._offsetX = {
         [0] = 0,
         [1] = data.__gridSize,
@@ -111,7 +110,7 @@ local function create_layer_object(self, data, auto)
     if auto then
         self.tiles = data.autoLayerTiles
         self.intGrid = data.intGridCsv
-    else 
+    else
         self.tiles = data.gridTiles
         self.intGrid = nil
     end
@@ -124,7 +123,7 @@ local function create_layer_object(self, data, auto)
     self.id = data.__identifier
     self.x, self.y = data.__pxTotalOffsetX, data.__pxTotalOffsetY
     self.visible = data.visible
-    self.color = {1, 1, 1, data.__opacity}
+    self.color = { 1, 1, 1, data.__opacity }
 
     self.width = data.__cWid
     self.height = data.__cHei
@@ -171,7 +170,7 @@ local function draw_layer_object(self)
         cache.batch[self.tileset.uid]:clear()
 
         -- Fill batch with quads
-         for i = 1, self._tilesLen do
+        for i = 1, self._tilesLen do
             cache.batch[self.tileset.uid]:add(
                 cache.quods[self.tileset.uid][self.tiles[i].t],
                 self.x + self.tiles[i].px[1] + self._offsetX[self.tiles[i].f],
@@ -181,8 +180,8 @@ local function draw_layer_object(self)
                 flipY[self.tiles[i].f]
             )
         end
-        
-        --Setting layer color 
+
+        --Setting layer color
         love.graphics.setColor(self.color)
         --Draw batch
         love.graphics.draw(cache.batch[self.tileset.uid])
@@ -196,11 +195,10 @@ end
 --LDtk uses hex colors while LÖVE uses RGB (on a scale of 0 to 1)
 -- Converts hex color to RGB
 function ldtk.hex2rgb(color)
-    local r = load("return {0x" .. color:sub(2, 3) .. ",0x" .. color:sub(4, 5) .. 
-                ",0x" .. color:sub(6, 7) .. "}")()
-    return {r[1] / 255, r[2] / 255, r[3] / 255}
+    local r = load("return {0x" .. color:sub(2, 3) .. ",0x" .. color:sub(4, 5) ..
+        ",0x" .. color:sub(6, 7) .. "}")()
+    return { r[1] / 255, r[2] / 255, r[3] / 255 }
 end
-
 
 --Checks if a table is empty.
 local function is_empty(t)
@@ -218,11 +216,11 @@ function ldtk:load(file, level)
     self.x, self.y = self.x or 0, self.x or 0
     self.countOfLevels = #self.data.levels
     self.countOfLayers = #self.data.defs.layers
-    
-    --creating a table with the path to .ldtk file separated by '/', 
+
+    --creating a table with the path to .ldtk file separated by '/',
     --used to get the path relative to main.lua instead of the .ldtk file. Ignore it.
     _path = {}
-    for str in string.gmatch(file, "([^"..'/'.."]+)") do
+    for str in string.gmatch(file, "([^" .. '/' .. "]+)") do
         table.insert(_path, str)
     end
     _path[#_path] = nil
@@ -250,7 +248,7 @@ function ldtk.getPath(relPath)
     local newRelPath = {}
     local pathLen = #_path
 
-    for str in string.gmatch(relPath, "([^"..'/'.."]+)") do
+    for str in string.gmatch(relPath, "([^" .. '/' .. "]+)") do
         table.insert(newRelPath, str)
     end
 
@@ -280,9 +278,8 @@ function ldtk.getPath(relPath)
     return newPath
 end
 
-
 local types = {
-    Entities = function (currentLayer, order, level)
+    Entities = function(currentLayer, order, level)
         for _, value in ipairs(currentLayer.entityInstances) do
             local props = {}
 
@@ -306,27 +303,27 @@ local types = {
         end
     end,
 
-    Tiles = function (currentLayer, order, level)
+    Tiles = function(currentLayer, order, level)
         if not is_empty(currentLayer.gridTiles) then
-            local layer = {draw = draw_layer_object}
+            local layer = { draw = draw_layer_object }
             create_layer_object(layer, currentLayer, false)
             layer.order = order
             ldtk.onLayer(layer, level)
         end
     end,
 
-    IntGrid = function (currentLayer, order, level)
+    IntGrid = function(currentLayer, order, level)
         if not is_empty(currentLayer.autoLayerTiles) and currentLayer.__tilesetDefUid then
-            local layer = {draw = draw_layer_object}
+            local layer = { draw = draw_layer_object }
             create_layer_object(layer, currentLayer, true)
             layer.order = order
             ldtk.onLayer(layer, level)
         end
     end,
 
-    AutoLayer = function (currentLayer, order, level)
+    AutoLayer = function(currentLayer, order, level)
         if not is_empty(currentLayer.autoLayerTiles) and currentLayer.__tilesetDefUid then
-            local layer = {draw = draw_layer_object}
+            local layer = { draw = draw_layer_object }
             create_layer_object(layer, currentLayer, true)
             layer.order = order
             ldtk.onLayer(layer, level)
@@ -350,7 +347,7 @@ function ldtk:goTo(index)
     else
         layers = self.data.levels[index].layerInstances
     end
-    
+
     local levelProps = {}
     for _, p in ipairs(self.data.levels[index].fieldInstances) do
         levelProps[p.__identifier] = p.__value
@@ -360,37 +357,38 @@ function ldtk:goTo(index)
 
     local levelEntry = {
         backgroundColor = ldtk.hex2rgb(self.data.levels[index].__bgColor),
-        id = self.data.levels[index].identifier,
-        worldX  = self.data.levels[index].worldX,
-        worldY = self.data.levels[index].worldY,
-        width = self.data.levels[index].pxWid,
-        height = self.data.levels[index].pxHei,
-        neighbours = self.data.levels[index].__neighbours,
-        index = index,
-        props = levelProps
+        id              = self.data.levels[index].identifier,
+        worldX          = self.data.levels[index].worldX,
+        worldY          = self.data.levels[index].worldY,
+        width           = self.data.levels[index].pxWid,
+        height          = self.data.levels[index].pxHei,
+        neighbours      = self.data.levels[index].__neighbours,
+        index           = index,
+        props           = levelProps
     }
 
     self.onLevelLoaded(levelEntry)
 
-    
+
 
     if self.flipped then
         for i = self.countOfLayers, 1, -1 do
             types[layers[i].__type](layers[i], i, levelEntry)
-        end    
+        end
     else
         for i = 1, self.countOfLayers do
             types[layers[i].__type](layers[i], i, levelEntry)
         end
     end
-    
+
 
     self.onLevelCreated(levelEntry)
 end
 
 --loads a level by its name (string)
 function ldtk:level(name)
-    self:goTo(self.levels[tostring(name)] or error('There are no levels with the name: "' .. tostring(name) .. '".\nDid you save? (ctrl +s)'))
+    self:goTo(self.levels[tostring(name)] or
+    error('There are no levels with the name: "' .. tostring(name) .. '".\nDid you save? (ctrl +s)'))
 end
 
 --loads next level
@@ -442,10 +440,10 @@ end
 function ldtk.removeCache()
     cache = {
         tilesets = {
-            
+
         },
         quods = {
-            
+
         },
         batch = {
 
@@ -454,8 +452,6 @@ function ldtk.removeCache()
     collectgarbage()
 end
 
-
-
 --------- CALLBACKS ----------
 --[[
     This library depends heavily on callbacks. It works by overriding the default callbacks.
@@ -463,36 +459,36 @@ end
 
 --[[
     ldtk.onEntity is called when a new entity is created.
-    
+
     entity = {
-        id          = (string), 
-        x           = (int), 
-        y           = (int), 
-        width       = (int), 
-        height      = (int), 
+        id          = (string),
+        x           = (int),
+        y           = (int),
+        width       = (int),
+        height      = (int),
         visible     = (bool)
         px          = (int),    --pivot x
         py          = (int),    --pivot y
-        order       = (int), 
+        order       = (int),
         props       = (table)   --custom fields defined in LDtk
     }
-    
-    Remember that colors are saved in HEX format and not RGB. 
+
+    Remember that colors are saved in HEX format and not RGB.
     You can use ldtk ldtk.hex2rgb(color) to get an RGB table like {0.21, 0.57, 0.92}
 ]]
 function ldtk.onEntity(entity, level)
-    
+
 end
 
 --[[
-    ldtk.onLayer is called when a new layer is created.    
+    ldtk.onLayer is called when a new layer is created.
 
     layer:draw() --used to draw the layer
 
     layer = {
-        id          = (string), 
-        x           = (int), 
-        y           = (int), 
+        id          = (string),
+        x           = (int),
+        y           = (int),
         visible     = (bool)
         color       = (table),  --the color of the layer {r,g,b,a}. Usually used for opacity.
         order       = (int),
@@ -500,7 +496,7 @@ end
     }
 ]]
 function ldtk.onLayer(layer, level)
-    
+
 end
 
 --[[
@@ -509,19 +505,19 @@ end
     It's usually useful when you need to remove old objects and change some settings like background color
 
     level = {
-        id          = (string), 
-        worldX      = (int), 
-        worldY      = (int), 
-        width       = (int), 
-        height      = (int), 
+        id          = (string),
+        worldX      = (int),
+        worldY      = (int),
+        width       = (int),
+        height      = (int),
         props       = (table), --custom fields defined in LDtk
         backgroundColor = (table) --the background color of the level as defined in LDtk
     }
-    
+
     props table has the custom fields defined in LDtk
 ]]
 function ldtk.onLevelLoaded(levelData)
-    
+
 end
 
 --[[
@@ -530,20 +526,17 @@ end
     It's usually useful when you need to call a function or manipulate the objects after they are created.
 
     level = {
-        id          = (string), 
-        worldX      = (int), 
-        worldY      = (int), 
-        width       = (int), 
-        height      = (int), 
+        id          = (string),
+        worldX      = (int),
+        worldY      = (int),
+        width       = (int),
+        height      = (int),
         props       = (table), --custom fields defined in LDtk
         backgroundColor = (table) --the background color of the level as defined in LDtk
     }
 ]]
 function ldtk.onLevelCreated(levelData)
-    
+
 end
-
-
-
 
 return ldtk
