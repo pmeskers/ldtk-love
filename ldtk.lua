@@ -109,7 +109,7 @@ local function create_layer_object(self, data, auto)
     --getting tiles information
     if auto then
         self.tiles = data.autoLayerTiles
-        self.intGrid = data.intGridCsv
+        self.intGrid = data.intGrid
     else
         self.tiles = data.gridTiles
         self.intGrid = nil
@@ -388,7 +388,7 @@ end
 --loads a level by its name (string)
 function ldtk:level(name)
     self:goTo(self.levels[tostring(name)] or
-    error('There are no levels with the name: "' .. tostring(name) .. '".\nDid you save? (ctrl +s)'))
+        error('There are no levels with the name: "' .. tostring(name) .. '".\nDid you save? (ctrl +s)'))
 end
 
 --loads next level
